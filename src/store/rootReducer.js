@@ -3,6 +3,7 @@ import { combineReducers } from '@reduxjs/toolkit';
 import bannerReducer from './admin/banners/banners.slice';
 import categoryReducer from './admin/categories/categories.slice';
 import orderReducer from './admin/orders-history/orders-history.slice';
+import reviewsReducer from './admin/reviews/reviews.slice';
 import usersReducer from './admin/users/users.slice';
 import authReducer from './auth/auth.slice';
 import eventReducer from './light-worker/events/events.slice';
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   event: eventReducer,
   banner: bannerReducer,
   order: orderReducer,
+  reviews: reviewsReducer,
 });
 
 export default rootReducer;

@@ -13,6 +13,7 @@ import {
   MarkUnreadChatAlt,
   Public,
   RadioButtonUnchecked,
+  RateReview,
   Settings,
   Storefront,
   ViewCarousel,
@@ -84,6 +85,12 @@ let sideBarRoutes = {
       title: 'Coupons',
       icon: Discount,
       href: '/admin/coupons',
+    },
+    {
+      id: 12,
+      title: 'Reviews',
+      icon: RateReview,
+      href: '/admin/reviews',
     },
     {
       id: 99,

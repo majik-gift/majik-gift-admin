@@ -187,6 +187,7 @@ const UpdateProfile = () => {
               <UIFileUploader
                 label="Upload Profile Image" // Added label here
                 title="Upload Image"
+                aspectRatio={1}
                 onChange={(e) => handleFileUpload(e, 'profile_image')}
                 initialImages={
                   isUpdate && watch('profile_image') == singleLightWorker?.profile_image

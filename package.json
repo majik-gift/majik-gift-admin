@@ -37,6 +37,7 @@
     "react-dom": "^18",
     "react-dropzone": "^14.2.9",
     "react-hook-form": "^7.53.0",
+    "react-image-crop": "^11.0.10",
     "react-infinite-scroll-component": "^6.1.0",
     "react-material-ui-carousel": "^3.4.2",
     "react-redux": "^9.1.2",
