@@ -2,19 +2,36 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { Send } from "@mui/icons-material";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
-import { Box, Button, CircularProgress, IconButton, InputBase, Paper, Popover } from "@mui/material";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { Box, Button, CircularProgress, IconButton, InputBase, Paper, Popover, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
+
+const ACCEPT_ATTACHMENTS = "image/*,.pdf,.doc,.docx";
+const MAX_FILE_SIZE_MB = 15;
 
 const ChatInput = ({ onSendMessage, loading = true, disabled, onTypingStart, onTypingStop, multiline, rows }) => {
   const [currentMsg, setCurrentMsg] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleSendMsg = () => {
-    if (currentMsg.trim() !== "") {
-      onSendMessage(currentMsg);
+    const hasText = currentMsg?.trim() !== "";
+    const hasFile = !!selectedFile;
+    if (hasText || hasFile) {
+      onSendMessage(hasText ? currentMsg : "", selectedFile || undefined);
       setCurrentMsg("");
+      setSelectedFile(null);
     }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) return;
+    setSelectedFile(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleKeyDown = () => {
@@ -61,6 +78,13 @@ const ChatInput = ({ onSendMessage, loading = true, disabled, onTypingStart, onT
 
   return (
     <Box sx={{ display: "flex", alignItems: "flex-end", gap: 2, height: "100%" }}>
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept={ACCEPT_ATTACHMENTS}
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+      />
       <Paper
         elevation={0}
         sx={{
@@ -71,10 +95,24 @@ const ChatInput = ({ onSendMessage, loading = true, disabled, onTypingStart, onT
           background: "rgba(245, 245, 245, 1)",
           borderRadius: "15px",
           height: "auto",
-          maxHeight: "150px", // Limit the total height of the Paper
-          overflow: "hidden", // Ensure the Paper doesn't expand beyond the limit
+          maxHeight: "150px",
+          overflow: "hidden",
         }}
       >
+        <IconButton
+          size="small"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled}
+          sx={{ alignSelf: "flex-end" }}
+          aria-label="Attach file"
+        >
+          <AttachFileIcon />
+        </IconButton>
+        {selectedFile && (
+          <Typography variant="caption" sx={{ alignSelf: "center", mr: 1, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis" }}>
+            {selectedFile.name}
+          </Typography>
+        )}
         <InputBase
           sx={{
             ml: 1,

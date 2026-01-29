@@ -141,7 +141,8 @@
 
 // export default ChatBubble;
 
-import { Avatar, Box, Button, Skeleton, Stack, Typography } from '@mui/material';
+import { Avatar, Box, Button, Link, Skeleton, Stack, Typography } from '@mui/material';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import moment from 'moment';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -259,8 +260,38 @@ const ChatBubble = ({ item, loading, isLastMessage }) => {
               {item?.sender?.first_name + ' ' + item?.sender?.last_name}
             </Typography>
           )}
+          {/* Attachment: image or document */}
+          {item?.media && (
+            <Box sx={{ my: 0.5 }}>
+              {item.media.media_type === 'image' ? (
+                <Link href={item.media.file_path} target="_blank" rel="noopener noreferrer" sx={{ display: 'block' }}>
+                  <Box
+                    component="img"
+                    src={item.media.file_path}
+                    alt="Attachment"
+                    sx={{
+                      maxWidth: '100%',
+                      maxHeight: 200,
+                      borderRadius: 1,
+                      objectFit: 'contain',
+                    }}
+                  />
+                </Link>
+              ) : (
+                <Link
+                  href={item.media.file_path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'inherit' }}
+                >
+                  <InsertDriveFileIcon fontSize="small" />
+                  <Typography variant="body2">Document</Typography>
+                </Link>
+              )}
+            </Box>
+          )}
           {/* Display the content with "See More" toggle if content is too long */}
-          {isLongContent ? (
+          {item?.content && (isLongContent ? (
             <>
               <Typography sx={{ whiteSpace: 'pre-line' }}>
                 {showMore
@@ -279,7 +310,7 @@ const ChatBubble = ({ item, loading, isLastMessage }) => {
             <Typography sx={{ whiteSpace: 'pre-line' }}>
               {formatContentWithLinks(item?.content)}
             </Typography>
-          )}
+          ))}
         </Box>
         <Stack width={1} justifyContent={isMe ? 'flex-end' : 'flex-start'}>
           <Typography variant="body2" color="#9D9D9D" sx={{ textAlign: isMe ? 'right' : 'left' }}>

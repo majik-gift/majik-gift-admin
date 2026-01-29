@@ -23,6 +23,7 @@ const ChatBox = forwardRef(
       handleOpenDrawer,
       openMeetingModal = () => { },
       handleArchived = () => { },
+      onSendZoomLink = () => { },
       archived,
     },
     ref
@@ -42,9 +43,9 @@ const ChatBox = forwardRef(
 
     // Helper function to determine the type of date divider (Today, Yesterday, or specific date)
     const getMessageDivider = (currentMessage, previousMessage) => {
-      const currentMessageDate = moment(currentMessage.createdAt).startOf('day');
+      const currentMessageDate = moment(currentMessage.created_at || currentMessage.createdAt).startOf('day');
       const previousMessageDate = previousMessage
-        ? moment(previousMessage.createdAt).startOf('day')
+        ? moment(previousMessage.created_at || previousMessage.createdAt).startOf('day')
         : null;
 
       if (!previousMessageDate || !currentMessageDate.isSame(previousMessageDate)) {
@@ -78,6 +79,7 @@ const ChatBox = forwardRef(
             chat={activeChat}
             openMeetingModal={openMeetingModal}
             handleArchivedChat={handleArchived}
+            onSendZoomLink={onSendZoomLink}
             archived={archived}
           />
         </motion.div>

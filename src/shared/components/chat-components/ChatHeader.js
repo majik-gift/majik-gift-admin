@@ -25,6 +25,7 @@ const ChatHeader = ({
   chat,
   openMeetingModal = () => {},
   handleArchivedChat = () => {},
+  onSendZoomLink = () => {},
   archived,
 }) => {
   const isLargeScreen = useMediaQuery('(min-width:900px)');
@@ -198,6 +199,16 @@ const ChatHeader = ({
           >
             {archived ? 'Unarchive chat' : 'Archived chat'}
           </MenuItem>
+          {(chat?.event_ticket_id || chat?.service_order_id) && (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onSendZoomLink();
+              }}
+            >
+              Send Zoom link to chat
+            </MenuItem>
+          )}
           <Link href={getRedirectUrl(chat)}>
             {chat?.type === 'individual' ? (
               <MenuItem>View Order</MenuItem>

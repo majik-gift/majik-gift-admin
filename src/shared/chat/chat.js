@@ -92,21 +92,37 @@ const Chat = ({ archived = false }) => {
   };
 
   const handleSendMsg = useCallback(
-    async (msg) => {
+    async (msg, file) => {
       setSendMsgLoading(true);
       try {
-        const data = await apiPost('chat/send-message', {
-          content: msg,
-          recipient_id: recipient?.id,
-          chat_id: activeChatRef.current?.id,
-        });
-
-        const { message, chat } = data?.response?.details;
-        setUserChat((prev) =>
-          prev.map((each) => (each.id === chat.id ? { ...chat, unread_count: 0 } : each))
-        );
-        setMessages((prev) => ({ ...prev, items: [message, ...prev?.items] }));
-        scrollToBottom();
+        let data;
+        if (file) {
+          const formData = new FormData();
+          formData.append('content', msg ?? '');
+          formData.append('recipient_id', recipient?.id);
+          formData.append('chat_id', activeChatRef.current?.id);
+          formData.append('file', file);
+          const res = await axiosInstance.post('chat/send-message', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          data = res?.data;
+        } else {
+          data = await apiPost('chat/send-message', {
+            content: msg,
+            recipient_id: recipient?.id,
+            chat_id: activeChatRef.current?.id,
+          });
+        }
+        const details = data?.details ?? data?.response?.details;
+        const message = details?.message;
+        const chat = details?.chat;
+        if (message && chat) {
+          setUserChat((prev) =>
+            prev.map((each) => (each.id === chat.id ? { ...chat, unread_count: 0 } : each))
+          );
+          setMessages((prev) => ({ ...prev, items: [message, ...prev?.items] }));
+          scrollToBottom();
+        }
       } catch (error) {
         console.error('Error sending message:', error);
       } finally {
@@ -115,6 +131,23 @@ const Chat = ({ archived = false }) => {
     },
     [recipient?.id]
   );
+
+  const handleSendZoomLink = useCallback(async () => {
+    if (!activeChatRef.current?.id) return;
+    try {
+      const res = await axiosInstance.post('chat/send-zoom-link', {
+        chat_id: activeChatRef.current.id,
+      });
+      const details = res?.data?.details ?? res?.data?.response?.details;
+      const message = details?.message;
+      if (message) {
+        setMessages((prev) => ({ ...prev, items: [message, ...prev?.items] }));
+        scrollToBottom();
+      }
+    } catch (error) {
+      console.error('Error sending Zoom link:', error);
+    }
+  }, []);
 
   const scrollToBottom = (delay = 50) => {
     if (chatContainerRef.current) {
@@ -302,6 +335,7 @@ const Chat = ({ archived = false }) => {
               handleOpenDrawer={() => setOpenDrawer(true)}
               openMeetingModal={() => setOpenCreateMeetingModal(!openCreateMeetingModal)}
               handleArchived={handleArchivedChat}
+              onSendZoomLink={handleSendZoomLink}
               archived={archived}
             />
           </Grid>
