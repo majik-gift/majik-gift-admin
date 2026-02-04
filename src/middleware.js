@@ -21,7 +21,7 @@ export async function middleware(request) {
   }
   console.log('🚀 ~ middleware ~ usrData:', usrData);
 
-  const authRoutes = ['/login', '/forgot-password', '/reset-password'];
+  const authRoutes = ['/login', '/forgot-password', '/reset-password', '/auth-callback'];
 
   // If there is no user data or the role is missing, redirect to login
   if (!usrData?.user?.role && !authRoutes.includes(pathname)) {
