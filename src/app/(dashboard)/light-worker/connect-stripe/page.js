@@ -11,6 +11,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ConnectSvg } from '@/assets';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { UIButton } from '@/shared/components';
+import { getLocalAccessToken } from '@/shared/helpers/authHelpers';
+import { createCookie } from '@/shared/helpers/cookies';
 import { setCurrentUser } from '@/store/auth/auth.slice';
 import { checkStripeStatus, connectStripe } from '@/store/auth/auth.thunks';
 
@@ -61,7 +63,23 @@ const Page = () => {
   const markStripeStatus = async () => {
     try {
       const response = await checkStatus({ accountId });
-      dispatch(setCurrentUser(response?.details));
+      const details = response?.details;
+      if (details) {
+        dispatch(setCurrentUser(details));
+        // Update cookie so middleware sees the new stripe status and stops redirecting here
+        const accessToken = getLocalAccessToken();
+        await createCookie(
+          JSON.stringify({
+            ...(accessToken && { access_token: accessToken }),
+            user: {
+              role: details.role,
+              stripe_status: details.stripeConnectStatus,
+              zoom_connected: details.zoom_connected,
+              country: details.country,
+            },
+          })
+        );
+      }
     } catch (error) {
       console.log('🚀 ~ loginSubmitHandler ~ error:', error);
     }
