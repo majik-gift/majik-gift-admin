@@ -11,14 +11,21 @@ import MuiDrawer from '@mui/material/Drawer';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '@/store/auth/auth.slice';
 import UIScrollbar from '../../ui/scrollbar';
 import { ListItemStyled } from './NavItem/ui';
 import SidebarItems from './SidebarItems';
 import { HoverCloseDrawer } from './styles';
 
+// Main customer-facing site URL – vendors are sent here on logout so they don't see admin login
+const getMainSiteUrl = () => process.env.NEXT_PUBLIC_WEB_APP_URL || '';
+
 export default function UiSidebar({ routes }) {
   const { toggleLoader } = useUI();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth?.user);
   const {
     uiState: { isDrawerOpen },
     toggleUIState,
@@ -29,10 +36,22 @@ export default function UiSidebar({ routes }) {
 
   const handleLogout = async () => {
     toggleLoader('showLoader');
+    const role = user?.role;
     try {
+      dispatch(logout());
       removeLocalAccessToken();
       await deleteCookie();
-      router.push('/login');
+      // Light workers and stall holders go back to main site; admins stay on admin login
+      if (role === 'light_worker' || role === 'stall_holder') {
+        const mainUrl = getMainSiteUrl();
+        if (mainUrl) {
+          window.location.href = mainUrl.endsWith('/') ? `${mainUrl}log-in` : `${mainUrl}/log-in`;
+        } else {
+          router.push('/login');
+        }
+      } else {
+        router.push('/login');
+      }
     } catch (error) {
       console.log(error);
     } finally {

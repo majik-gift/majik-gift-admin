@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server';
 
+// Send unauthenticated users to main site so admin login is not shown as public
+function redirectToMainSiteOrLogin(request) {
+  const mainSiteUrl = process.env.NEXT_PUBLIC_WEB_APP_URL;
+  if (mainSiteUrl) {
+    const base = mainSiteUrl.replace(/\/$/, '');
+    return NextResponse.redirect(new URL(`${base}/log-in`, base));
+  }
+  return NextResponse.redirect(new URL('/login', request.url));
+}
+
 export async function middleware(request) {
   // Retrieve the token value from the cookies in the request, if it exists
   const userCookie = request.cookies.get('currentUser')?.value;
@@ -11,26 +21,18 @@ export async function middleware(request) {
     usrData = JSON.parse(userCookie || '{}');
   } catch (error) {
     console.error('Error parsing user data:', error);
-    // Redirect to login if the cookie is invalid or parsing fails
-    let path = pathname.split('/');
-    if (path.includes('event-invite')) {
-      // return NextResponse.next();
-      return NextResponse.redirect(new URL(`/login?redirectUrl=${pathname}`, request.url));
-    }
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Redirect to main site (not admin login) so admin login is not shown as public
+    return redirectToMainSiteOrLogin(request);
   }
-  console.log('🚀 ~ middleware ~ usrData:', usrData);
 
   const authRoutes = ['/login', '/forgot-password', '/reset-password', '/auth-callback'];
 
-  // If there is no user data or the role is missing, redirect to login
+  // If there is no user data or the role is missing, redirect to main site (not admin login)
   if (!usrData?.user?.role && !authRoutes.includes(pathname)) {
-    let path = pathname.split('/');
-    if (path.includes('event-invite')) {
-      console.log('🚀 ~ middleware ~ path:', path);
+    if (pathname.split('/').includes('event-invite')) {
       return NextResponse.redirect(new URL(`/login?redirectUrl=${pathname}`, request.url));
     }
-    return NextResponse.redirect(new URL('/login', request.url));
+    return redirectToMainSiteOrLogin(request);
   }
 
   if (pathname.startsWith('/event-invite/') || pathname.startsWith('/zoom-documentation')) {

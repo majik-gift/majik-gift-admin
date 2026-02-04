@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import axios from 'axios';
 import { createCookie } from '@/shared/helpers/cookies';
 import { storeLocalAccessToken } from '@/shared/helpers/authHelpers';
 import { setCurrentUser } from '@/store/auth/auth.slice';
@@ -38,18 +39,42 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        // Fetch user details with the token
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://newapi.majikgift.com/api/v1/';
+        const response = await axios.get(`${apiUrl}auth/me`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        const userDetails = response?.data?.response?.details || response?.data?.details || response?.data;
+
+        if (!userDetails || userDetails.role !== role) {
+          setError('Unable to verify account');
+          setTimeout(() => router.push('/login'), 3000);
+          return;
+        }
+
         storeLocalAccessToken(accessToken);
         await createCookie(
           JSON.stringify({
             access_token: accessToken,
-            user: { role },
+            user: {
+              role: userDetails.role,
+              stripe_status: userDetails.stripeConnectStatus,
+              zoom_connected: userDetails.zoom_connected,
+              country: userDetails.country,
+            },
           })
         );
-        dispatch(setCurrentUser({ role }));
+        dispatch(setCurrentUser({
+          role: userDetails.role,
+          stripe_status: userDetails.stripeConnectStatus,
+          zoom_connected: userDetails.zoom_connected,
+          country: userDetails.country,
+        }));
 
         const dashboardPath =
           role === 'light_worker' ? '/light-worker/dashboard' : '/stall-holder/dashboard';
-        window.location.href = dashboardPath;
+        router.replace(dashboardPath);
       } catch (err) {
         console.error('Auth callback error:', err);
         setError('Something went wrong. Redirecting to login...');

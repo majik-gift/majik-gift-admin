@@ -33,16 +33,22 @@ export const SessionProvider = ({ children }) => {
   const getSession = async () => {
     try {
       const { data } = await axiosInstance.get('auth/me');
-      dispatch(setCurrentUser(data?.response?.details));
-      await createCookie(
-        JSON.stringify({
-          user: {
-            role: data?.response?.details?.role,
-            stripe_status: data?.response?.details?.stripeConnectStatus,
-            zoom_connected: data?.response?.details?.zoom_connected,
-          },
-        })
-      );
+      const details = data?.response?.details;
+      dispatch(setCurrentUser(details));
+      const accessToken = getLocalAccessToken();
+      if (details) {
+        await createCookie(
+          JSON.stringify({
+            ...(accessToken && { access_token: accessToken }),
+            user: {
+              role: details.role,
+              stripe_status: details.stripeConnectStatus,
+              zoom_connected: details.zoom_connected,
+              country: details.country,
+            },
+          })
+        );
+      }
       if (!connected) {
         console.log('socket connect horha ha');
         connectSocket();
@@ -59,7 +65,12 @@ export const SessionProvider = ({ children }) => {
             pathname.includes('zoom-documentation')
           )
         ) {
-          router.push('/login');
+          const mainSiteUrl = process.env.NEXT_PUBLIC_WEB_APP_URL;
+          if (mainSiteUrl) {
+            window.location.href = `${mainSiteUrl.replace(/\/$/, '')}/log-in`;
+          } else {
+            router.push('/login');
+          }
         }
         addToast({
           message: 'Your session get expired please login again',
@@ -84,11 +95,19 @@ export const SessionProvider = ({ children }) => {
     } else if (
       !(
         pathname.includes('event-invite') ||
+        pathname.includes('auth-callback') ||
         pathname.includes('login') ||
+        pathname.includes('forgot-password') ||
+        pathname.includes('reset-password') ||
         pathname.includes('zoom-documentation')
       )
     ) {
-      router.push('/login');
+      const mainSiteUrl = process.env.NEXT_PUBLIC_WEB_APP_URL;
+      if (mainSiteUrl) {
+        window.location.href = `${mainSiteUrl.replace(/\/$/, '')}/log-in`;
+      } else {
+        router.push('/login');
+      }
     }
     setLoading(false);
   }, [token]);
