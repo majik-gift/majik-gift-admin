@@ -59,7 +59,12 @@ export const SessionProvider = ({ children }) => {
             pathname.includes('zoom-documentation')
           )
         ) {
-          router.push('/login');
+          const mainSiteUrl = process.env.NEXT_PUBLIC_WEB_APP_URL;
+          if (mainSiteUrl) {
+            window.location.href = `${mainSiteUrl.replace(/\/$/, '')}/log-in`;
+          } else {
+            router.push('/login');
+          }
         }
         addToast({
           message: 'Your session get expired please login again',
@@ -84,11 +89,19 @@ export const SessionProvider = ({ children }) => {
     } else if (
       !(
         pathname.includes('event-invite') ||
+        pathname.includes('auth-callback') ||
         pathname.includes('login') ||
+        pathname.includes('forgot-password') ||
+        pathname.includes('reset-password') ||
         pathname.includes('zoom-documentation')
       )
     ) {
-      router.push('/login');
+      const mainSiteUrl = process.env.NEXT_PUBLIC_WEB_APP_URL;
+      if (mainSiteUrl) {
+        window.location.href = `${mainSiteUrl.replace(/\/$/, '')}/log-in`;
+      } else {
+        router.push('/login');
+      }
     }
     setLoading(false);
   }, [token]);

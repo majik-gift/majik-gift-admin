@@ -59,11 +59,17 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle token expiration (401 error)
+    // Handle token expiration (401 error) – send to main site so admin login is not shown
     if (error.response?.status === 401) {
       await deleteCookie();
       removeLocalAccessToken();
-      window.location.href = '/login';
+      const mainSiteUrl = process.env.NEXT_PUBLIC_WEB_APP_URL;
+      if (mainSiteUrl) {
+        const base = mainSiteUrl.replace(/\/$/, '');
+        window.location.href = `${base}/log-in`;
+      } else {
+        window.location.href = '/login';
+      }
     }
 
     // Log and handle the error globally
