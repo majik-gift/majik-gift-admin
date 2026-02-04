@@ -18,7 +18,7 @@ import {
   UIInputField,
   UIRadio,
 } from '@/shared/components';
-import CountryCostInput from '@/shared/components/country-cost-input/country-cost-input';
+import ShippingCountriesSection from '@/shared/components/country-cost-input/ShippingCountriesSection';
 import { useToast } from '@/shared/context/ToastContext';
 import axiosInstance from '@/shared/services/axiosInstance';
 import { categoriesGet } from '@/store/admin/categories/categories.thunk';
@@ -330,24 +330,12 @@ const CreateProduct = () => {
               />
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
-              <Typography fontWeight="800" variant="h5">
-                Shipping amount charge to customer
-              </Typography>
-              <Stack direction="row" flexWrap="wrap">
-                {allCountry?.map((each, index) => {
-                  return (
-                    <CountryCostInput
-                      data={each}
-                      shippingCost={shippingCost}
-                      setShippingCost={setShippingCost}
-                      errors={typeof shippingCostErrors === 'string' ? [] : shippingCostErrors}
-                    />
-                  );
-                })}
-                {typeof shippingCostErrors === 'string' && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{shippingCostErrors}</FormHelperText>
-                )}
-              </Stack>
+              <ShippingCountriesSection
+                allCountry={allCountry}
+                shippingCost={shippingCost}
+                setShippingCost={setShippingCost}
+                shippingCostErrors={shippingCostErrors}
+              />
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
               <Typography fontWeight="800" variant="h5">
