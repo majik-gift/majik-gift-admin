@@ -243,9 +243,10 @@ const UpdateProfile = () => {
             <Grid2 size={{ xs: 12, md: 6 }} key="note">
               <UIInputField
                 name="note"
-                label="Description" // Added label here
+                label="Description"
                 placeholder="Description"
-                type="text"
+                multiline
+                rows={4}
                 fullWidth
                 control={control}
                 errorMessage={errors.note?.message}

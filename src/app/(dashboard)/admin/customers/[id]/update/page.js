@@ -79,7 +79,7 @@ const UserDetailsPage = () => {
     { name: 'last_name', label: 'Last Name', type: 'text' },
     { name: 'phone_number', label: 'Phone Number', type: 'number' },
     { name: 'address', label: 'Address', type: 'text' },
-    { name: 'note', label: 'Description', type: 'text' },
+    { name: 'note', label: 'Description', type: 'text', multiline: true, rows: 4 },
   ];
 
   return (
@@ -97,6 +97,7 @@ const UserDetailsPage = () => {
                 errorMessage={errors?.[field.name]?.message}
                 placeholder={field.label}
                 disabled={field?.disabled}
+                {...(field.multiline && { multiline: true, rows: field.rows ?? 4 })}
               />
             </Grid2>
           ))}
