@@ -17,10 +17,22 @@ function isAdminAuthRoute(pathname) {
 }
 
 export async function middleware(request) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
 
   // Admin login and auth pages: always allow access so admins can log in
   if (isAdminAuthRoute(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Stripe Connect return: when user comes back from Stripe OAuth with accountId,
+  // allow through even without cookie (cookie may not be sent on cross-site redirect).
+  // The page uses localStorage token for API calls and will refresh the cookie.
+  const isConnectStripeReturn =
+    (pathname.startsWith('/light-worker/connect-stripe') ||
+      pathname.startsWith('/stall-holder/connect-stripe') ||
+      pathname.startsWith('/admin/connect-stripe')) &&
+    searchParams.has('accountId');
+  if (isConnectStripeReturn) {
     return NextResponse.next();
   }
 
