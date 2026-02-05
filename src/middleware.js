@@ -10,25 +10,35 @@ function redirectToMainSiteOrLogin(request) {
   return NextResponse.redirect(new URL('/login', request.url));
 }
 
+const ADMIN_AUTH_ROUTES = ['/login', '/log-in', '/forgot-password', '/reset-password', '/auth-callback'];
+
+function isAdminAuthRoute(pathname) {
+  return ADMIN_AUTH_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/'));
+}
+
 export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  // Admin login and auth pages: always allow access so admins can log in
+  if (isAdminAuthRoute(pathname)) {
+    return NextResponse.next();
+  }
+
   // Retrieve the token value from the cookies in the request, if it exists
   const userCookie = request.cookies.get('currentUser')?.value;
   let usrData = {};
 
-  const { pathname } = request.nextUrl;
   try {
     // Safely parse the user data from the cookie
     usrData = JSON.parse(userCookie || '{}');
   } catch (error) {
     console.error('Error parsing user data:', error);
-    // Redirect to main site (not admin login) so admin login is not shown as public
+    // Invalid cookie: redirect to main site (except we already returned for auth routes above)
     return redirectToMainSiteOrLogin(request);
   }
 
-  const authRoutes = ['/login', '/forgot-password', '/reset-password', '/auth-callback'];
-
   // If there is no user data or the role is missing, redirect to main site (not admin login)
-  if (!usrData?.user?.role && !authRoutes.includes(pathname)) {
+  if (!usrData?.user?.role) {
     if (pathname.split('/').includes('event-invite')) {
       return NextResponse.redirect(new URL(`/login?redirectUrl=${pathname}`, request.url));
     }
